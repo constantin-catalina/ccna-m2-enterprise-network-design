@@ -1,0 +1,63 @@
+===============
+=== SW-WAN2 ===
+===============
+
+enable
+configure terminal
+hostname SW-WAN2
+int vlan 1
+ip add 20.20.20.4 255.255.255.0
+no sh
+exit
+interface e0/0
+switchport mode access
+switchport access vlan 1
+no shutdown
+exit
+interface e0/1
+switchport mode access
+switchport access vlan 1
+no shutdown
+exit
+interface e0/2
+switchport mode access
+switchport access vlan 1
+no shutdown
+exit
+int e0/3
+shutdown
+exit
+int range e1/0-3
+shutdown
+exit
+int range e2/0-3
+shutdown
+exit
+int range e3/0-3
+shutdown
+exit
+service password-encryption
+enable secret cisco-for-fun
+line console 0
+password cisco-for-fun
+login 
+logging synchronous
+exec-timeout 10 0
+exit
+ip domain name cisco.com
+username admin secret cisco-for-fun
+crypto key generate rsa modulus 2048
+line vty 0 4
+transport input ssh
+login local
+exec-timeout 10 0
+exit
+ip ssh version 2
+banner motd #
+********************************************************
+*  WARNING: Unauthorized access is strictly prohibited *
+********************************************************
+#
+do wr
+ip route 0.0.0.0 0.0.0.0 20.20.20.20
+copy running-config tftp: //172.16.30.1

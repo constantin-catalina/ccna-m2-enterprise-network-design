@@ -1,0 +1,147 @@
+================
+=== Core-SW1 ===
+================
+
+enable
+configure terminal
+hostname Core-SW1
+vlan 10
+name V10_AAA
+vlan 20
+name V20_HTTP
+vlan 30
+name V30_TFTP
+vlan 40
+name V40_DNS
+exit
+ip routing
+ip route 0.0.0.0 0.0.0.0 20.20.20.3
+spanning-tree mode rapid-pvst
+spanning-tree vlan 10,20 priority 24576
+spanning-tree vlan 30,40 priority 36864
+int e0/0
+no switchport
+ip add 20.20.20.1 255.255.255.0
+standby 50 ip 20.20.20.20
+standby 50 priority 110
+standby 50 preempt
+no sh
+exit
+interface vlan 10
+ip address 172.16.10.2 255.255.255.0
+no shut
+standby 10 ip 172.16.10.10
+standby 10 priority 110
+standby 10 preempt
+exit
+interface vlan 20
+ip address 172.16.20.2 255.255.255.0
+no shut
+standby 20 ip 172.16.20.10
+standby 20 priority 110
+standby 20 preempt
+exit
+interface vlan 30
+ip address 172.16.30.2 255.255.255.0
+no shut
+standby 30 ip 172.16.30.10
+standby 30 priority 90
+standby 30 preempt
+exit
+interface vlan 40
+ip address 172.16.40.2 255.255.255.0
+no shut
+standby 40 ip 172.16.40.10
+standby 40 priority 90
+standby 40 preempt
+exit
+ip dhcp excluded-address 192.168.10.1 192.168.10.20
+ip dhcp excluded-address 192.168.20.1 192.168.20.20
+ip dhcp excluded-address 192.168.30.1 192.168.30.20
+ip dhcp excluded-address 192.168.40.1 192.168.40.20
+ip dhcp pool POOL_VLAN10
+network 192.168.10.0 255.255.255.0
+default-router 192.168.10.10
+dns-server 172.16.40.1
+exit
+ip dhcp pool POOL_VLAN20
+network 192.168.20.0 255.255.255.0
+default-router 192.168.20.10
+dns-server 172.16.40.1
+exit
+ip dhcp pool POOL_VLAN30
+network 192.168.30.0 255.255.255.0
+default-router 192.168.30.10
+dns-server 172.16.40.1
+exit
+ip dhcp pool POOL_VLAN40
+network 192.168.40.0 255.255.255.0
+default-router 192.168.40.10
+dns-server 172.16.40.1
+exit
+interface range e1/0-1
+channel-group 2 mode active
+no sh
+exit
+interface port-channel 2
+switchport trunk encapsulation dot1q
+switchport mode trunk
+switchport trunk allowed vlan 10,20,30,40
+exit
+interface range e1/2-3
+channel-group 3 mode active
+no sh
+exit
+interface port-channel 3
+switchport trunk encapsulation dot1q
+switchport mode trunk
+switchport trunk allowed vlan 10,20,30,40
+exit
+ip route 10.10.10.0 255.255.255.0 20.20.20.3
+ip route 30.30.30.0 255.255.255.0 20.20.20.3
+int range e0/1-3
+shutdown
+exit
+int range e2/0-3
+shutdown
+exit
+int range e3/0-3
+shutdown
+exit
+service password-encryption
+enable secret cisco-for-fun
+line console 0
+password cisco-for-fun
+login 
+logging synchronous
+exec-timeout 10 0
+exit
+ip domain name cisco.com
+username admin secret cisco-for-fun
+crypto key generate rsa modulus 2048
+line vty 0 4
+transport input ssh
+login local
+exec-timeout 10 0
+exit
+ip ssh version 2
+banner motd #
+********************************************************
+*  WARNING: Unauthorized access is strictly prohibited *
+********************************************************
+#
+do wr
+conf t
+aaa new-model
+aaa authentication login SSH_AUTH group tacacs+ local
+aaa authorization exec SSH_AUTH group tacacs+ local
+tacacs server AAA-SERVER
+address ipv4 172.16.10.1
+key cisco-for-fun
+exit
+line vty 0 4
+login authentication SSH_AUTH
+transport input ssh
+exit
+do wr
+copy running-config tftp: //172.16.30.1

@@ -1,0 +1,6 @@
+===========
+=== AAA ===
+===========
+
+ifconfig eth0 172.16.10.1 netmask 255.255.255.0 up
+route add default gw 172.16.10.10
