@@ -1,0 +1,6 @@
+=================
+=== Toolbox-4 ===
+=================
+
+ifconfig eth0 192.168.40.21 netmask 255.255.255.0 up
+route add default gw 192.168.40.10
